@@ -35,7 +35,7 @@ Nada de cosas infladas. Nada de magia rara ✋
 
 🔧 DevTools integradas
 
-⚡ Ultra liviano: ~128 KB el sistema base
+⚡ Ultra liviano: ~195 KB el sistema base
 
 🪟 Interfaz clásica estilo XP/7
 
