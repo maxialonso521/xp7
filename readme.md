@@ -1,30 +1,113 @@
-# 🛒 XP7 Store
+🪟 XP7 OS
 
-Tienda oficial de aplicaciones y actualizaciones para **XP7 OS**.
+Sistema Operativo Web Experimental
 
-## 🌐 Enlace de la tienda web
-[https://maxialonso521.github.io/xp7-store/](https://maxialonso521.github.io/xp7-store/)
+XP7 OS es un sistema operativo web, inspirado en la era clásica de Windows XP y Windows 7.
+Corre dentro de un navegador moderno, pero está diseñado para verse, sentirse y comportarse como un sistema operativo real.
 
-## 📦 Qué es XP7 Store?
+⚠️ Importante: XP7 OS NO incluye navegador por defecto.
 
-XP7 Store es una tienda web donde puedes:
-- Descargar aplicaciones (.pak) para XP7 OS
-- Descargar actualizaciones (.act) del sistema
-- Publicar tus propias aplicaciones
-- Explorar apps creadas por la comunidad
+🧠 Filosofía del Sistema
 
-## 🚀 Cómo usar
+XP7 OS sigue una visión tradicional:
 
-### Para usuarios:
-1. Visita [la tienda web](https://maxialonso521.github.io/xp7-store/)
-2. Navega por las aplicaciones disponibles
-3. Descarga archivos .pak (aplicaciones) o .act (actualizaciones)
-4. En XP7 OS, usa el Gestor de Paquetes o Gestor de ACT para instalarlos
+El sistema operativo no depende de un navegador propio
 
-### Para desarrolladores:
-1. Visita [submit.html](https://maxialonso521.github.io/xp7-store/submit.html)
-2. Sube tu archivo .pak o .act
-3. Completa la información
-4. Haz un Pull Request para publicar en la tienda
+Las aplicaciones son modulares
 
-## 📁 Estructura del repositorio
+El usuario decide qué instalar
+
+Todo es liviano, claro y controlable
+
+Nada de cosas infladas. Nada de magia rara ✋
+
+✨ Características Principales
+
+🧩 Arquitectura modular con .ACT y .PAK
+
+📦 Sistema de aplicaciones independiente
+
+🗂️ File System API con permisos controlados
+
+🎨 Fondos animados y shaders con Pixi.js
+
+🛡️ Antivirus y validación de contenido
+
+🔧 DevTools integradas
+
+⚡ Ultra liviano: ~128 KB el sistema base
+
+🪟 Interfaz clásica estilo XP/7
+
+🌐 Navegador (Producto Separado)
+
+El Navegador XP7 se distribuye por separado como aplicación .PAK.
+
+No viene instalado por defecto
+
+Puede ser reemplazado por otros navegadores
+
+Mantiene diseño clásico
+
+Funciona como app dentro de XP7 OS
+
+Usa motor web del navegador real (meta-navegador 😵‍💫)
+
+👉 Esto permite:
+
+Menos peso del sistema base
+
+Más seguridad
+
+Libertad total al usuario
+
+📁 Sistema de Paquetes
+🔹 .PAK – Aplicaciones
+
+Apps independientes
+
+Contienen HTML, CSS, JS, iconos y librerías
+
+Permisos al instalar
+
+No se ejecutan hasta abrirse
+
+🔹 .ACT – Actualizaciones del Sistema
+
+Modifican o extienden XP7 OS
+
+Pueden cambiar fondos, shaders, gestores o funciones internas
+
+Administradas por el Gestor ACT
+
+⚠️ Si eliges un directorio del sistema real, es tu responsabilidad.
+
+🔐 Seguridad
+
+Escaneo de archivos
+
+Bloqueo de contenido sospechoso
+
+Análisis visual básico
+
+Protección por permisos del navegador
+
+Compatible con antivirus y sistemas modernos
+
+🧪 Estado del Proyecto
+
+Versión actual: 3.x.x
+
+En desarrollo activo
+
+Experimental pero funcional
+
+Optimizado al extremo
+
+⚠️ Avisos Finales (muy serios)
+
+❌ No se aceptan perros, gatos ni animales descargados para hackear 🐕🐈
+
+🌐 Requiere conexión a internet
+
+😇 Si algo se rompe, recuerda: tú lo instalaste
