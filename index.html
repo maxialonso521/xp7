@@ -1,0 +1,3092 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XP7 OS - Sistema Operativo Web</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        #pixi-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(20, 25, 30, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .taskbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .taskbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-1px);
+        }
+
+        .running-apps {
+            display: flex;
+            gap: 5px;
+        }
+
+        .running-app {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .running-app:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #system-tray {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .clock, .date {
+            padding: 2px 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .start-menu {
+            position: fixed;
+            bottom: 40px;
+            left: 10px;
+            width: 500px;
+            height: 500px;
+            background: rgba(25, 30, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            display: none;
+            overflow: hidden;
+        }
+
+        .start-menu.active {
+            display: block;
+        }
+
+        .start-header {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.1));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-icon {
+            font-size: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .start-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            height: calc(100% - 180px);
+        }
+
+        .start-column h3 {
+            margin-bottom: 10px;
+            color: #4CAF50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .start-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 5px;
+        }
+
+        .start-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .start-icon {
+            font-size: 20px;
+        }
+
+        .start-text {
+            font-size: 14px;
+        }
+
+        .start-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(20, 25, 30, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 8px 15px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-box button {
+            background: rgba(76, 175, 80, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .search-box button:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .desktop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 40px);
+            z-index: 2;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 20px;
+        }
+
+        .desktop-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            padding: 10px;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .desktop-icon .icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .desktop-icon .name {
+            font-size: 12px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        #windows-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .window {
+            position: absolute;
+            min-width: 300px;
+            min-height: 200px;
+            background: rgba(30, 35, 40, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            pointer-events: all;
+            z-index: 101;
+        }
+
+        .window-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(20, 25, 30, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: move;
+            user-select: none;
+        }
+
+        .window-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .window-control {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 3px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .window-control:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .window-control.minimize:hover {
+            background: rgba(255, 193, 7, 0.2);
+        }
+
+        .window-control.maximize:hover {
+            background: rgba(33, 150, 243, 0.2);
+        }
+
+        .window-control.close:hover {
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        .window-content {
+            padding: 15px;
+            height: calc(100% - 50px);
+            overflow: auto;
+        }
+
+        .btn-primary, .btn-secondary, .btn-danger {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(33, 150, 243, 0.2);
+            color: white;
+            border: 1px solid rgba(33, 150, 243, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.2);
+            color: white;
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        #notifications {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: rgba(25, 30, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+            transform-origin: top right;
+        }
+
+        .notification.error {
+            border-left-color: #f44336;
+        }
+
+        .notification.warning {
+            border-left-color: #ff9800;
+        }
+
+        .notification.info {
+            border-left-color: #2196f3;
+        }
+
+        .notification.success {
+            border-left-color: #4CAF50;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .notification-title {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%) scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f2027, #203a43);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-logo {
+            font-size: 60px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 2px;
+            width: 0%;
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        .loading-version {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
+        }
+
+        .explorer {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .explorer-toolbar {
+            display: flex;
+            gap: 5px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .explorer-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .explorer-sidebar {
+            width: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .explorer-main {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .file-name {
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        .file-info {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .package-manager {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pm-header {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pm-header h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .pm-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pm-body {
+            flex: 1;
+            display: flex;
+            padding: 15px;
+            gap: 20px;
+        }
+
+        .pm-sidebar {
+            width: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .pm-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .pm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pm-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pm-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .pm-item.active {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 3px solid #4CAF50;
+        }
+
+        .calculator {
+            padding: 20px;
+        }
+
+        .calc-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: right;
+            font-size: 24px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .calc-button {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calc-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .calc-button.operator {
+            background: rgba(255, 152, 0, 0.2);
+        }
+
+        .calc-button.operator:hover {
+            background: rgba(255, 152, 0, 0.3);
+        }
+
+        .calc-button.equals {
+            background: rgba(76, 175, 80, 0.2);
+            grid-column: span 2;
+        }
+
+        .calc-button.equals:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .calc-button.clear {
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        .calc-button.clear:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        .editor {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 5px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .editor-content {
+            flex: 1;
+            position: relative;
+        }
+
+        #editor-textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 15px;
+            resize: none;
+            outline: none;
+        }
+
+        #context-menu {
+            position: fixed;
+            background: rgba(30, 35, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 5px 0;
+            min-width: 180px;
+            z-index: 10001;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: none;
+            animation: slideIn 0.2s ease;
+        }
+
+        .context-menu-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .context-menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .context-menu-item.delete {
+            color: #f44336;
+        }
+
+        .context-menu-item.delete:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .start-menu {
+                width: calc(100% - 20px);
+                height: 70vh;
+            }
+            
+            .start-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .window {
+                min-width: 90vw !important;
+                min-height: 50vh !important;
+                left: 5vw !important;
+                top: 5vh !important;
+            }
+        }
+
+        .fs-selector {
+            padding: 20px;
+        }
+
+        .fs-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .fs-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .fs-option.selected {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4CAF50;
+        }
+
+        .fs-option-icon {
+            font-size: 32px;
+        }
+
+        .fs-option-info {
+            flex: 1;
+        }
+
+        .fs-option-title {
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .fs-option-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .fs-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .fs-status.available {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+        }
+
+        .fs-status.unavailable {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        #custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+        }
+    </style>
+</head>
+<body>
+    <div id="pixi-background"></div>
+    
+    <div id="taskbar">
+        <div class="taskbar-left">
+            <button id="start-btn" class="start-button">
+                <span>▶ Inicio</span>
+                <span class="start-arrow">▼</span>
+            </button>
+            <div id="running-apps" class="running-apps"></div>
+        </div>
+        <div class="taskbar-right">
+            <div id="system-tray">
+                <span id="volume-icon">🔊</span>
+                <span id="network-icon">🌐</span>
+                <span id="time" class="clock">00:00</span>
+                <span id="date" class="date">01/01/2024</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="start-menu" class="start-menu">
+        <div class="start-header">
+            <div class="user-info">
+                <div class="user-icon">👤</div>
+                <div class="user-name">Usuario XP7</div>
+            </div>
+        </div>
+        <div class="start-content">
+            <div class="start-column">
+                <h3>Programas</h3>
+                <div class="start-item" data-app="explorer">
+                    <span class="start-icon">📁</span>
+                    <span class="start-text">Explorador</span>
+                </div>
+                <div class="start-item" data-app="notepad">
+                    <span class="start-icon">📝</span>
+                    <span class="start-text">Bloc de Notas</span>
+                </div>
+                <div class="start-item" data-app="calculator">
+                    <span class="start-icon">🧮</span>
+                    <span class="start-text">Calculadora</span>
+                </div>
+                <div class="start-item" data-app="package-manager">
+                    <span class="start-icon">📦</span>
+                    <span class="start-text">Gestor de Paquetes</span>
+                </div>
+                <div class="start-item" data-app="act-manager">
+                    <span class="start-icon">🔄</span>
+                    <span class="start-text">Gestor de ACT</span>
+                </div>
+            </div>
+            <div class="start-column">
+                <h3>Herramientas</h3>
+                <div class="start-item" data-app="storage-manager">
+                    <span class="start-icon">💾</span>
+                    <span class="start-text">Storage Manager</span>
+                </div>
+                <div class="start-item" data-app="file-selector">
+                    <span class="start-icon">📂</span>
+                    <span class="start-text">Selector de Sistema de Archivos</span>
+                </div>
+                <div class="start-item" data-app="settings">
+                    <span class="start-icon">⚙️</span>
+                    <span class="start-text">Configuración</span>
+                </div>
+                <div class="start-item" data-app="terminal">
+                    <span class="start-icon">💻</span>
+                    <span class="start-text">Terminal</span>
+                </div>
+            </div>
+            <div class="start-column">
+                <h3>Sistema</h3>
+                <div class="start-item" data-action="shutdown">
+                    <span class="start-icon">⏻</span>
+                    <span class="start-text">Apagar</span>
+                </div>
+                <div class="start-item" data-action="restart">
+                    <span class="start-icon">↻</span>
+                    <span class="start-text">Reiniciar</span>
+                </div>
+                <div class="start-item" data-action="logout">
+                    <span class="start-icon">👤</span>
+                    <span class="start-text">Cerrar Sesión</span>
+                </div>
+            </div>
+        </div>
+        <div class="start-footer">
+            <div class="search-box">
+                <input type="text" placeholder="Buscar programas y archivos...">
+                <button>🔍</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="desktop" class="desktop"></div>
+    
+    <div id="windows-container"></div>
+    
+    <div id="custom-cursor"></div>
+    
+    <div id="notifications"></div>
+    
+    <div id="context-menu">
+        <div class="context-menu-item" data-action="open">
+            <span>📂</span> Abrir
+        </div>
+        <div class="context-menu-item" data-action="rename">
+            <span>✏️</span> Renombrar
+        </div>
+        <div class="context-menu-item" data-action="properties">
+            <span>📋</span> Propiedades
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item delete" data-action="delete">
+            <span>🗑️</span> Eliminar
+        </div>
+    </div>
+    
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">XP7</div>
+            <div class="loading-text">Iniciando sistema con PIXI.js...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div class="loading-version">Versión 3.0.0 con efectos visuales</div>
+        </div>
+    </div>
+
+    <input type="file" id="file-input" style="display: none;">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.0/pixi.min.js"></script>
+    <script>
+        // SISTEMA XP7 COMPLETAMENTE CORREGIDO
+        const XP7 = {
+            version: '3.0.0',
+            initialized: false,
+            windows: [],
+            apps: {},
+            currentZIndex: 100,
+            
+            fileSystem: {
+                mode: 'localStorage',
+                directoryHandle: null,
+                structure: {},
+                currentPath: '/',
+                
+                async init() {
+                    console.log('💾 Inicializando sistema de archivos...');
+                    
+                    const savedMode = localStorage.getItem('xp7_fs_mode');
+                    if (savedMode === 'fileSystem') {
+                        this.mode = 'localStorage';
+                    } else if (savedMode) {
+                        this.mode = savedMode;
+                    }
+                    
+                    const savedStructure = localStorage.getItem('xp7_fs_structure');
+                    if (savedStructure) {
+                        this.structure = JSON.parse(savedStructure);
+                    } else {
+                        this.structure = {
+                            '/': ['System', 'Apps', 'User'],
+                            '/System': ['config.json', 'packages.json', 'updates.json'],
+                            '/Apps': [],
+                            '/User': ['Documents', 'Downloads', 'Desktop'],
+                            '/User/Documents': [],
+                            '/User/Downloads': [],
+                            '/User/Desktop': []
+                        };
+                        this.saveStructure();
+                    }
+                    
+                    // Asegurar directorio de Updates
+                    if (!this.structure['/System/Updates']) {
+                        this.structure['/System/Updates'] = [];
+                        this.saveStructure();
+                    }
+                    
+                    this.ensureSystemFiles();
+                    console.log('✅ Sistema de archivos inicializado en modo:', this.mode);
+                },
+                
+                async enableFileSystemAPI() {
+                    if (!('showDirectoryPicker' in window)) {
+                        throw new Error('File System API no disponible en tu navegador');
+                    }
+                    
+                    try {
+                        const handle = await window.showDirectoryPicker({
+                            mode: 'readwrite'
+                        });
+                        
+                        this.mode = 'fileSystem';
+                        this.directoryHandle = handle;
+                        localStorage.setItem('xp7_fs_mode', 'fileSystem');
+                        
+                        console.log('✅ File System API activada en directorio:', handle.name);
+                        return handle;
+                    } catch (error) {
+                        console.error('Error accediendo a File System API:', error);
+                        throw error;
+                    }
+                },
+                
+                async readFile(path) {
+                    if (this.mode === 'localStorage') {
+                        const key = 'xp7_fs_' + path.replace(/\//g, '_');
+                        return localStorage.getItem(key);
+                    } else if (this.mode === 'fileSystem') {
+                        return null;
+                    }
+                },
+                
+                async writeFile(path, content) {
+                    if (this.mode === 'localStorage') {
+                        const key = 'xp7_fs_' + path.replace(/\//g, '_');
+                        localStorage.setItem(key, content);
+                        
+                        const dir = path.substring(0, path.lastIndexOf('/')) || '/';
+                        const file = path.substring(path.lastIndexOf('/') + 1);
+                        
+                        if (!this.structure[dir]) {
+                            this.structure[dir] = [];
+                        }
+                        
+                        if (!this.structure[dir].includes(file)) {
+                            this.structure[dir].push(file);
+                            this.saveStructure();
+                        }
+                        
+                        return true;
+                    } else if (this.mode === 'fileSystem') {
+                        return false;
+                    }
+                },
+                
+                async createDirectory(path) {
+                    if (this.mode === 'localStorage') {
+                        if (!this.structure[path]) {
+                            this.structure[path] = [];
+                            this.saveStructure();
+                            return true;
+                        }
+                        return false;
+                    } else if (this.mode === 'fileSystem') {
+                        return false;
+                    }
+                },
+                
+                async listDirectory(path = '/') {
+                    const entries = [];
+                    
+                    if (this.mode === 'localStorage') {
+                        Object.keys(this.structure).forEach(dir => {
+                            if (dir.startsWith(path) && dir !== path) {
+                                const subPath = dir.substring(path === '/' ? 1 : path.length + 1);
+                                if (!subPath.includes('/')) {
+                                    entries.push({
+                                        name: subPath,
+                                        kind: 'directory',
+                                        type: 'directory',
+                                        icon: '📁'
+                                    });
+                                }
+                            }
+                        });
+                        
+                        if (this.structure[path]) {
+                            this.structure[path].forEach(fileName => {
+                                if (!fileName.includes('/')) {
+                                    entries.push({
+                                        name: fileName,
+                                        kind: 'file',
+                                        type: this.getFileType(fileName),
+                                        icon: this.getFileIcon(fileName)
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    
+                    return entries;
+                },
+                
+                saveStructure() {
+                    localStorage.setItem('xp7_fs_structure', JSON.stringify(this.structure));
+                },
+                
+                ensureSystemFiles() {
+                    const systemFiles = {
+                        '/System/config.json': JSON.stringify({
+                            version: XP7.version,
+                            name: 'XP7 OS',
+                            created: new Date().toISOString(),
+                            fileSystem: this.mode,
+                            status: 'operational'
+                        }, null, 2),
+                        '/System/packages.json': '[]',
+                        '/System/updates.json': '[]'
+                    };
+                    
+                    Object.entries(systemFiles).forEach(([path, content]) => {
+                        this.writeFile(path, content).catch(console.error);
+                    });
+                },
+                
+                getFileType(filename) {
+                    const ext = filename.split('.').pop().toLowerCase();
+                    const types = {
+                        'txt': 'text', 'js': 'javascript', 'json': 'json',
+                        'html': 'html', 'css': 'css', 'pak': 'package',
+                        'act': 'update', 'png': 'image', 'jpg': 'image',
+                        'jpeg': 'image', 'gif': 'image', 'mp3': 'audio',
+                        'mp4': 'video', 'pdf': 'document'
+                    };
+                    return types[ext] || 'unknown';
+                },
+                
+                getFileIcon(filename) {
+                    const type = this.getFileType(filename);
+                    const icons = {
+                        'text': '📄', 'javascript': '📜', 'json': '📋',
+                        'html': '🌐', 'css': '🎨', 'package': '📦',
+                        'update': '🔄', 'image': '🖼️', 'audio': '🎵',
+                        'video': '🎬', 'document': '📕', 'directory': '📁',
+                        'unknown': '📄'
+                    };
+                    return icons[type] || '📄';
+                },
+                
+                getStorageInfo() {
+                    let totalSize = 0;
+                    let fileCount = 0;
+                    
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('xp7_fs_')) {
+                            const value = localStorage.getItem(key);
+                            totalSize += key.length + (value ? value.length : 0);
+                            fileCount++;
+                        }
+                    }
+                    
+                    const maxSize = 5 * 1024 * 1024;
+                    const usedMB = (totalSize / 1024 / 1024).toFixed(2);
+                    const maxMB = (maxSize / 1024 / 1024).toFixed(2);
+                    const percentage = ((totalSize / maxSize) * 100).toFixed(1);
+                    
+                    return {
+                        used: totalSize,
+                        usedMB: usedMB,
+                        max: maxSize,
+                        maxMB: maxMB,
+                        percentage: percentage,
+                        fileCount: fileCount
+                    };
+                },
+                
+                exportFileSystem() {
+                    const exportData = {};
+                    
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('xp7_fs_')) {
+                            const path = key.substring(7).replace(/_/g, '/');
+                            exportData[path] = localStorage.getItem(key);
+                        }
+                    }
+                    
+                    return JSON.stringify(exportData, null, 2);
+                },
+                
+                importFileSystem(jsonData) {
+                    try {
+                        const data = JSON.parse(jsonData);
+                        
+                        Object.keys(data).forEach(path => {
+                            const key = 'xp7_fs_' + path.replace(/\//g, '_');
+                            localStorage.setItem(key, data[path]);
+                        });
+                        
+                        this.rebuildStructure();
+                        return true;
+                    } catch (error) {
+                        console.error('Error importing file system:', error);
+                        return false;
+                    }
+                },
+                
+                rebuildStructure() {
+                    this.structure = {};
+                    
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('xp7_fs_')) {
+                            const path = key.substring(7).replace(/_/g, '/');
+                            const dir = path.substring(0, path.lastIndexOf('/')) || '/';
+                            const file = path.substring(path.lastIndexOf('/') + 1);
+                            
+                            if (!this.structure[dir]) {
+                                this.structure[dir] = [];
+                            }
+                            
+                            if (!this.structure[dir].includes(file)) {
+                                this.structure[dir].push(file);
+                            }
+                        }
+                    }
+                    
+                    this.saveStructure();
+                },
+                
+                async processACTFile(content) {
+                    try {
+                        const data = JSON.parse(content);
+                        
+                        if (!data.type || data.type !== 'update') {
+                            throw new Error('Archivo .act inválido');
+                        }
+                        
+                        const actKey = 'xp7_act_' + Date.now();
+                        const updateData = {
+                            ...data,
+                            installed: new Date().toISOString(),
+                            version: data.version || '1.0.0',
+                            id: actKey,
+                            name: data.name || 'Actualización sin nombre',
+                            description: data.description || 'Sin descripción'
+                        };
+                        
+                        localStorage.setItem(actKey, JSON.stringify(updateData));
+                        
+                        // Guardar también como archivo en el sistema
+                        const fileName = 'update_' + Date.now() + '.act';
+                        await this.writeFile('/System/Updates/' + fileName, content);
+                        
+                        return {
+                            success: true,
+                            message: 'Actualización "' + updateData.name + '" instalada correctamente',
+                            data: updateData
+                        };
+                    } catch (error) {
+                        console.error('Error procesando archivo .act:', error);
+                        return {
+                            success: false,
+                            message: 'Error procesando archivo .act: ' + error.message
+                        };
+                    }
+                },
+                
+                async installACTFileUsingFS() {
+                    if (!('showOpenFilePicker' in window)) {
+                        return {
+                            success: false,
+                            message: 'File System API no disponible en tu navegador'
+                        };
+                    }
+                    
+                    try {
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            types: [{
+                                description: 'Archivos de actualización',
+                                accept: {
+                                    'application/json': ['.act']
+                                }
+                            }],
+                            multiple: false
+                        });
+                        
+                        const file = await fileHandle.getFile();
+                        const content = await file.text();
+                        
+                        const result = await this.processACTFile(content);
+                        
+                        return result;
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            console.error('Error al seleccionar archivo:', error);
+                            return {
+                                success: false,
+                                message: 'Error al seleccionar archivo: ' + error.message
+                            };
+                        }
+                        return {
+                            success: false,
+                            message: 'Selección cancelada'
+                        };
+                    }
+                },
+                
+                getInstalledUpdates() {
+                    const updates = [];
+                    
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('xp7_act_')) {
+                            try {
+                                const update = JSON.parse(localStorage.getItem(key));
+                                updates.push({
+                                    key: key,
+                                    ...update,
+                                    size: update.size || 'Desconocido'
+                                });
+                            } catch (e) {
+                                console.warn('Error parsing update:', key, e);
+                            }
+                        }
+                    }
+                    
+                    return updates;
+                },
+                
+                deleteUpdate(key) {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        return true;
+                    }
+                    return false;
+                }
+            },
+            
+            async init() {
+                console.log('🚀 Iniciando XP7 OS v' + this.version);
+                
+                await this.fileSystem.init();
+                this.setupEvents();
+                this.loadDefaultApps();
+                this.startClock();
+                
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.display = 'none';
+                        this.showNotification('XP7 OS', 
+                            'Sistema iniciado correctamente', 
+                            'success');
+                    }, 500);
+                }, 2000);
+                
+                this.initialized = true;
+                console.log('✅ XP7 OS inicializado correctamente');
+            },
+            
+            loadDefaultApps() {
+                this.apps = {
+                    'explorer': {
+                        name: 'Explorador de Archivos',
+                        icon: '📁',
+                        description: 'Navega y gestiona tus archivos',
+                        category: 'Sistema',
+                        launch: () => XP7Apps.openExplorer()
+                    },
+                    'notepad': {
+                        name: 'Bloc de Notas',
+                        icon: '📝',
+                        description: 'Editor de texto simple',
+                        category: 'Herramientas',
+                        launch: () => XP7Apps.openNotepad()
+                    },
+                    'calculator': {
+                        name: 'Calculadora',
+                        icon: '🧮',
+                        description: 'Calculadora básica',
+                        category: 'Herramientas',
+                        launch: () => XP7Apps.openCalculator()
+                    },
+                    'package-manager': {
+                        name: 'Gestor de Paquetes',
+                        icon: '📦',
+                        description: 'Instala y gestiona aplicaciones',
+                        category: 'Sistema',
+                        launch: () => XP7Apps.openPackageManager()
+                    },
+                    'storage-manager': {
+                        name: 'Storage Manager',
+                        icon: '💾',
+                        description: 'Gestiona el almacenamiento local',
+                        category: 'Sistema',
+                        launch: () => XP7Apps.openStorageManager()
+                    },
+                    'file-selector': {
+                        name: 'Selector de Sistema de Archivos',
+                        icon: '📂',
+                        description: 'Selecciona cómo almacenar tus archivos',
+                        category: 'Herramientas',
+                        launch: () => XP7Apps.openFileSelector()
+                    },
+                    'settings': {
+                        name: 'Configuración',
+                        icon: '⚙️',
+                        description: 'Ajustes del sistema',
+                        category: 'Sistema',
+                        launch: () => XP7Apps.openSettings()
+                    },
+                    'terminal': {
+                        name: 'Terminal',
+                        icon: '💻',
+                        description: 'Terminal del sistema',
+                        category: 'Herramientas',
+                        launch: () => XP7Apps.openTerminal()
+                    },
+                    'act-manager': {
+                        name: 'Gestor de ACT',
+                        icon: '🔄',
+                        description: 'Gestiona archivos de actualización .act',
+                        category: 'Sistema',
+                        launch: () => XP7Apps.openACTManager()
+                    }
+                };
+                
+                this.updateDesktopIcons();
+            },
+            
+            updateDesktopIcons() {
+                const desktop = document.getElementById('desktop');
+                desktop.innerHTML = '';
+                
+                // Mostrar todas las aplicaciones
+                Object.entries(this.apps).forEach(([appId, app]) => {
+                    const icon = document.createElement('div');
+                    icon.className = 'desktop-icon';
+                    icon.innerHTML = `
+                        <div class="icon">${app.icon}</div>
+                        <div class="name">${app.name}</div>
+                    `;
+                    icon.addEventListener('dblclick', () => XP7Apps.launch(appId));
+                    desktop.appendChild(icon);
+                });
+            },
+            
+            setupEvents() {
+                document.getElementById('start-btn').addEventListener('click', () => {
+                    const menu = document.getElementById('start-menu');
+                    menu.classList.toggle('active');
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) {
+                        document.getElementById('start-menu').classList.remove('active');
+                    }
+                });
+                
+                document.querySelectorAll('.start-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const app = item.dataset.app;
+                        const action = item.dataset.action;
+                        
+                        if (app) {
+                            XP7Apps.launch(app);
+                        } else if (action) {
+                            this.handleSystemAction(action);
+                        }
+                        
+                        document.getElementById('start-menu').classList.remove('active');
+                    });
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    const cursor = document.getElementById('custom-cursor');
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                    
+                    const target = e.target;
+                    if (target.tagName === 'BUTTON' || target.closest('button') || 
+                        target.classList.contains('start-item') ||
+                        target.classList.contains('window-control') ||
+                        target.classList.contains('file-item') ||
+                        target.classList.contains('desktop-icon')) {
+                        cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                        cursor.style.borderColor = '#2196f3';
+                    } else {
+                        cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                        cursor.style.borderColor = '#4CAF50';
+                    }
+                });
+                
+                document.getElementById('file-input').addEventListener('change', async (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length === 0) return;
+                    
+                    for (const file of files) {
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            const fileName = file.name;
+                            const filePath = '/User/Downloads/' + fileName;
+                            await this.fileSystem.writeFile(filePath, event.target.result);
+                        };
+                        reader.readAsText(file);
+                    }
+                    
+                    this.showNotification('Archivos', files.length + ' archivo(s) subido(s)', 'info');
+                    e.target.value = '';
+                });
+            },
+            
+            showNotification(title, message, type = 'info') {
+                const notifications = document.getElementById('notifications');
+                const id = 'notification-' + Date.now();
+                
+                const notification = document.createElement('div');
+                notification.className = 'notification ' + type;
+                notification.id = id;
+                
+                notification.innerHTML = `
+                    <div class="notification-header">
+                        <span class="notification-title">${title}</span>
+                        <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div class="notification-message">${message}</div>
+                `;
+                
+                notifications.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (document.getElementById(id)) {
+                        document.getElementById(id).remove();
+                    }
+                }, 5000);
+            },
+            
+            handleSystemAction(action) {
+                switch(action) {
+                    case 'shutdown':
+                        this.shutdown();
+                        break;
+                    case 'restart':
+                        this.restart();
+                        break;
+                    case 'logout':
+                        this.logout();
+                        break;
+                }
+            },
+            
+            shutdown() {
+                if (confirm('¿Estás seguro de que quieres apagar el sistema?')) {
+                    this.showNotification('Sistema', 'Apagando XP7 OS...', 'info');
+                    setTimeout(() => {
+                        document.body.innerHTML = `
+                            <div style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                height: 100vh;
+                                background: #000;
+                                color: #4CAF50;
+                                font-size: 24px;
+                            ">
+                                💻 Sistema Apagado
+                            </div>
+                        `;
+                    }, 1000);
+                }
+            },
+            
+            restart() {
+                if (confirm('¿Estás seguro de que quieres reiniciar el sistema?')) {
+                    this.showNotification('Sistema', 'Reiniciando XP7 OS...', 'info');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            },
+            
+            logout() {
+                if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                    this.showNotification('Sistema', 'Cerrando sesión...', 'info');
+                    setTimeout(() => {
+                        localStorage.clear();
+                        window.location.reload();
+                    }, 1000);
+                }
+            },
+            
+            startClock() {
+                const updateTime = () => {
+                    const now = new Date();
+                    const timeElement = document.getElementById('time');
+                    const dateElement = document.getElementById('date');
+                    
+                    timeElement.textContent = now.toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    
+                    dateElement.textContent = now.toLocaleDateString('es-ES');
+                };
+                
+                updateTime();
+                setInterval(updateTime, 1000);
+            }
+        };
+
+        const XP7Window = {
+            windows: [],
+            
+            create(options) {
+                const windowId = 'window_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const windowElement = document.createElement('div');
+                windowElement.className = 'window';
+                windowElement.id = windowId;
+                windowElement.style.width = (options.width || 600) + 'px';
+                windowElement.style.height = (options.height || 400) + 'px';
+                windowElement.style.left = options.left || '50px';
+                windowElement.style.top = options.top || '50px';
+                windowElement.style.zIndex = XP7.currentZIndex++;
+                
+                windowElement.innerHTML = `
+                    <div class="window-header">
+                        <div class="window-title">
+                            <span>${options.icon || '💻'}</span>
+                            <span>${options.title || 'Ventana'}</span>
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control minimize" title="Minimizar">🗕</button>
+                            <button class="window-control maximize" title="Maximizar">🗗</button>
+                            <button class="window-control close" title="Cerrar">✕</button>
+                        </div>
+                    </div>
+                    <div class="window-content">${options.content || ''}</div>
+                `;
+                
+                document.getElementById('windows-container').appendChild(windowElement);
+                
+                const header = windowElement.querySelector('.window-header');
+                const minimizeBtn = windowElement.querySelector('.minimize');
+                const maximizeBtn = windowElement.querySelector('.maximize');
+                const closeBtn = windowElement.querySelector('.close');
+                
+                let isDragging = false;
+                let dragOffset = { x: 0, y: 0 };
+                
+                header.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    dragOffset = {
+                        x: e.clientX - windowElement.offsetLeft,
+                        y: e.clientY - windowElement.offsetTop
+                    };
+                    windowElement.style.zIndex = XP7.currentZIndex++;
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        windowElement.style.left = (e.clientX - dragOffset.x) + 'px';
+                        windowElement.style.top = (e.clientY - dragOffset.y) + 'px';
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+                
+                minimizeBtn.addEventListener('click', () => {
+                    windowElement.style.display = 'none';
+                    setTimeout(() => {
+                        windowElement.style.display = 'block';
+                    }, 1000);
+                });
+                
+                maximizeBtn.addEventListener('click', () => {
+                    if (windowElement.classList.contains('maximized')) {
+                        windowElement.classList.remove('maximized');
+                        windowElement.style.width = (options.width || 600) + 'px';
+                        windowElement.style.height = (options.height || 400) + 'px';
+                        windowElement.style.left = options.left || '50px';
+                        windowElement.style.top = options.top || '50px';
+                    } else {
+                        windowElement.classList.add('maximized');
+                        windowElement.style.width = 'calc(100vw - 20px)';
+                        windowElement.style.height = 'calc(100vh - 60px)';
+                        windowElement.style.left = '10px';
+                        windowElement.style.top = '10px';
+                    }
+                });
+                
+                closeBtn.addEventListener('click', () => {
+                    windowElement.remove();
+                    const index = this.windows.indexOf(windowId);
+                    if (index > -1) {
+                        this.windows.splice(index, 1);
+                    }
+                });
+                
+                windowElement.addEventListener('mousedown', () => {
+                    windowElement.style.zIndex = XP7.currentZIndex++;
+                });
+                
+                this.windows.push(windowId);
+                return windowElement;
+            }
+        };
+
+        const XP7Apps = {
+            launch(appId) {
+                // Primero verifica si es una aplicación del sistema
+                switch(appId) {
+                    case 'explorer':
+                        this.openExplorer();
+                        break;
+                    case 'notepad':
+                        this.openNotepad();
+                        break;
+                    case 'calculator':
+                        this.openCalculator();
+                        break;
+                    case 'package-manager':
+                        this.openPackageManager();
+                        break;
+                    case 'storage-manager':
+                        this.openStorageManager();
+                        break;
+                    case 'file-selector':
+                        this.openFileSelector();
+                        break;
+                    case 'settings':
+                        this.openSettings();
+                        break;
+                    case 'terminal':
+                        this.openTerminal();
+                        break;
+                    case 'act-manager':
+                        this.openACTManager();
+                        break;
+                    default:
+                        // Si no es una aplicación del sistema, verifica si es una aplicación personalizada
+                        if (XP7.apps[appId]) {
+                            // Si la aplicación tiene una función launch, usarla
+                            const app = XP7.apps[appId];
+                            if (app.launch && typeof app.launch === 'function') {
+                                app.launch();
+                            } else {
+                                // Si no, crear una ventana genérica
+                                this.openCustomApp(appId);
+                            }
+                        } else {
+                            XP7.showNotification('Error', 'Aplicación "' + appId + '" no encontrada', 'error');
+                        }
+                }
+            },
+            
+            openCustomApp(appId) {
+                const app = XP7.apps[appId];
+                if (!app) {
+                    XP7.showNotification('Error', 'Aplicación no encontrada', 'error');
+                    return;
+                }
+                
+                // Crear una ventana genérica para aplicaciones personalizadas
+                const window = XP7Window.create({
+                    title: app.name,
+                    icon: app.icon,
+                    width: app.width || 600,
+                    height: app.height || 400,
+                    content: `
+                        <div style="padding: 20px; height: 100%; overflow: auto;">
+                            <h2>${app.name}</h2>
+                            <p>${app.description || 'Aplicación personalizada'}</p>
+                            <div style="margin-top: 20px;">
+                                ${app.content || '<p>Aplicación instalada correctamente</p>'}
+                            </div>
+                        </div>
+                    `
+                });
+            },
+            
+            async openExplorer() {
+                try {
+                    const entries = await XP7.fileSystem.listDirectory('/');
+                    
+                    const fileList = entries.map(entry => {
+                        return `
+                            <div class="file-item" data-name="${entry.name}" data-kind="${entry.kind}">
+                                <div class="file-icon">${entry.icon}</div>
+                                <div class="file-name">${entry.name}</div>
+                                <div class="file-info">${entry.kind === 'directory' ? 'Carpeta' : entry.type}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    const window = XP7Window.create({
+                        title: 'Explorador de Archivos',
+                        icon: '📁',
+                        width: 800,
+                        height: 500,
+                        content: `
+                            <div class="explorer">
+                                <div class="explorer-toolbar">
+                                    <button class="btn-primary" id="explorer-back">←</button>
+                                    <button class="btn-primary" id="explorer-forward">→</button>
+                                    <input type="text" id="explorer-path" value="/" style="flex: 1; background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px 10px; border-radius: 3px;">
+                                    <button class="btn-secondary" id="explorer-refresh">↻</button>
+                                    <button class="btn-primary" id="explorer-new-folder">📁 Nuevo</button>
+                                    <button class="btn-primary" id="explorer-upload">📤 Subir</button>
+                                    <button class="btn-secondary" id="explorer-mode">
+                                        ${XP7.fileSystem.mode === 'localStorage' ? '💾' : '📂'}
+                                    </button>
+                                </div>
+                                <div class="explorer-content">
+                                    <div class="explorer-sidebar">
+                                        <h3>Ubicaciones</h3>
+                                        <div class="pm-list">
+                                            <div class="pm-item active" data-path="/">
+                                                <span>🏠</span> Raíz
+                                            </div>
+                                            <div class="pm-item" data-path="/System">
+                                                <span>⚙️</span> Sistema
+                                            </div>
+                                            <div class="pm-item" data-path="/Apps">
+                                                <span>📦</span> Aplicaciones
+                                            </div>
+                                            <div class="pm-item" data-path="/User">
+                                                <span>👤</span> Usuario
+                                            </div>
+                                            <div class="pm-item" data-path="/User/Documents">
+                                                <span>📄</span> Documentos
+                                            </div>
+                                            <div class="pm-item" data-path="/System/Updates">
+                                                <span>🔄</span> Actualizaciones
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="explorer-main">
+                                        <h3>Archivos y Carpetas</h3>
+                                        <div class="file-list" id="explorer-files">
+                                            ${fileList}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    });
+                    
+                    const content = window.querySelector('.window-content');
+                    let currentPath = '/';
+                    
+                    async function refreshExplorer() {
+                        const entries = await XP7.fileSystem.listDirectory(currentPath);
+                        const pathInput = content.querySelector('#explorer-path');
+                        pathInput.value = currentPath;
+                        
+                        const fileList = entries.map(entry => {
+                            return `
+                                <div class="file-item" data-name="${entry.name}" data-kind="${entry.kind}">
+                                    <div class="file-icon">${entry.icon}</div>
+                                    <div class="file-name">${entry.name}</div>
+                                    <div class="file-info">${entry.kind === 'directory' ? 'Carpeta' : entry.type}</div>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        content.querySelector('#explorer-files').innerHTML = fileList || '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">Directorio vacío</div>';
+                    }
+                    
+                    content.querySelector('#explorer-refresh').addEventListener('click', refreshExplorer);
+                    
+                    content.querySelector('#explorer-new-folder').addEventListener('click', async () => {
+                        const name = prompt('Nombre de la nueva carpeta:');
+                        if (name) {
+                            const newPath = currentPath === '/' ? '/' + name : currentPath + '/' + name;
+                            await XP7.fileSystem.createDirectory(newPath);
+                            await refreshExplorer();
+                            XP7.showNotification('Explorador', 'Carpeta "' + name + '" creada', 'success');
+                        }
+                    });
+                    
+                    content.querySelector('#explorer-upload').addEventListener('click', () => {
+                        document.getElementById('file-input').click();
+                    });
+                    
+                    content.querySelector('#explorer-mode').addEventListener('click', () => {
+                        XP7Apps.launch('file-selector');
+                    });
+                    
+                } catch (error) {
+                    XP7.showNotification('Error', 'No se pudo abrir el explorador: ' + error.message, 'error');
+                }
+            },
+            
+            openNotepad() {
+                const window = XP7Window.create({
+                    title: 'Bloc de Notas',
+                    icon: '📝',
+                    width: 600,
+                    height: 400,
+                    content: `
+                        <div class="editor">
+                            <div class="editor-toolbar">
+                                <button class="btn-primary" id="notepad-new">
+                                    <span>📄</span> Nuevo
+                                </button>
+                                <button class="btn-primary" id="notepad-save">
+                                    <span>💾</span> Guardar
+                                </button>
+                                <button class="btn-secondary" id="notepad-open">
+                                    <span>📂</span> Abrir
+                                </button>
+                            </div>
+                            <div class="editor-content">
+                                <textarea id="notepad-textarea" placeholder="Escribe aquí..." style="width: 100%; height: 300px; background: rgba(255,255,255,0.05); color: white; border: none; padding: 10px; font-family: monospace;"></textarea>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                const textarea = content.querySelector('#notepad-textarea');
+                
+                content.querySelector('#notepad-new').addEventListener('click', () => {
+                    textarea.value = '';
+                });
+                
+                content.querySelector('#notepad-save').addEventListener('click', async () => {
+                    const content = textarea.value;
+                    if (!content.trim()) {
+                        XP7.showNotification('Notepad', 'El documento está vacío', 'warning');
+                        return;
+                    }
+                    
+                    const fileName = prompt('Nombre del archivo:', 'documento.txt');
+                    if (fileName) {
+                        await XP7.fileSystem.writeFile('/User/Documents/' + fileName, content);
+                        XP7.showNotification('Notepad', 'Archivo "' + fileName + '" guardado', 'success');
+                    }
+                });
+                
+                content.querySelector('#notepad-open').addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.txt,.js,.json,.html,.css';
+                    
+                    input.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                textarea.value = event.target.result;
+                                XP7.showNotification('Notepad', 'Archivo "' + file.name + '" cargado', 'info');
+                            };
+                            reader.readAsText(file);
+                        }
+                    });
+                    
+                    input.click();
+                });
+            },
+            
+            openCalculator() {
+                let currentInput = '0';
+                let previousInput = '';
+                let operation = null;
+                
+                const window = XP7Window.create({
+                    title: 'Calculadora',
+                    icon: '🧮',
+                    width: 320,
+                    height: 450,
+                    content: `
+                        <div class="calculator">
+                            <div class="calc-display" id="calc-display">0</div>
+                            <div class="calc-buttons">
+                                <button class="calc-button clear" data-action="clear">C</button>
+                                <button class="calc-button" data-action="delete">⌫</button>
+                                <button class="calc-button operator" data-action="divide">÷</button>
+                                <button class="calc-button operator" data-action="multiply">×</button>
+                                
+                                <button class="calc-button" data-number="7">7</button>
+                                <button class="calc-button" data-number="8">8</button>
+                                <button class="calc-button" data-number="9">9</button>
+                                <button class="calc-button operator" data-action="subtract">−</button>
+                                
+                                <button class="calc-button" data-number="4">4</button>
+                                <button class="calc-button" data-number="5">5</button>
+                                <button class="calc-button" data-number="6">6</button>
+                                <button class="calc-button operator" data-action="add">+</button>
+                                
+                                <button class="calc-button" data-number="1">1</button>
+                                <button class="calc-button" data-number="2">2</button>
+                                <button class="calc-button" data-number="3">3</button>
+                                <button class="calc-button operator" data-action="equals" style="grid-row: span 2;">=</button>
+                                
+                                <button class="calc-button" data-number="0" style="grid-column: span 2;">0</button>
+                                <button class="calc-button" data-action="decimal">.</button>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                const display = content.querySelector('#calc-display');
+                
+                function updateDisplay() {
+                    display.textContent = currentInput;
+                }
+                
+                function appendNumber(number) {
+                    if (currentInput === '0' || currentInput === 'Error') {
+                        currentInput = number;
+                    } else {
+                        currentInput += number;
+                    }
+                    updateDisplay();
+                }
+                
+                function chooseOperation(op) {
+                    if (currentInput === '') return;
+                    if (previousInput !== '') {
+                        compute();
+                    }
+                    operation = op;
+                    previousInput = currentInput;
+                    currentInput = '';
+                }
+                
+                function compute() {
+                    let computation;
+                    const prev = parseFloat(previousInput);
+                    const current = parseFloat(currentInput);
+                    
+                    if (isNaN(prev) || isNaN(current)) return;
+                    
+                    switch (operation) {
+                        case '+':
+                            computation = prev + current;
+                            break;
+                        case '-':
+                            computation = prev - current;
+                            break;
+                        case '×':
+                            computation = prev * current;
+                            break;
+                        case '÷':
+                            if (current === 0) {
+                                currentInput = 'Error';
+                                updateDisplay();
+                                return;
+                            }
+                            computation = prev / current;
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    currentInput = computation.toString();
+                    operation = undefined;
+                    previousInput = '';
+                    updateDisplay();
+                }
+                
+                function clearCalculator() {
+                    currentInput = '0';
+                    previousInput = '';
+                    operation = undefined;
+                    updateDisplay();
+                }
+                
+                function deleteLast() {
+                    if (currentInput.length === 1) {
+                        currentInput = '0';
+                    } else {
+                        currentInput = currentInput.slice(0, -1);
+                    }
+                    updateDisplay();
+                }
+                
+                content.querySelectorAll('[data-number]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        appendNumber(button.dataset.number);
+                    });
+                });
+                
+                content.querySelectorAll('[data-action]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const action = button.dataset.action;
+                        
+                        switch (action) {
+                            case 'clear':
+                                clearCalculator();
+                                break;
+                            case 'delete':
+                                deleteLast();
+                                break;
+                            case 'decimal':
+                                if (!currentInput.includes('.')) {
+                                    currentInput += '.';
+                                    updateDisplay();
+                                }
+                                break;
+                            case 'add':
+                                chooseOperation('+');
+                                break;
+                            case 'subtract':
+                                chooseOperation('-');
+                                break;
+                            case 'multiply':
+                                chooseOperation('×');
+                                break;
+                            case 'divide':
+                                chooseOperation('÷');
+                                break;
+                            case 'equals':
+                                compute();
+                                break;
+                        }
+                    });
+                });
+            },
+            
+            openPackageManager() {
+                const window = XP7Window.create({
+                    title: 'Gestor de Paquetes',
+                    icon: '📦',
+                    width: 700,
+                    height: 500,
+                    content: `
+                        <div class="package-manager">
+                            <div class="pm-header">
+                                <h1><span>📦</span> Gestor de Paquetes XP7</h1>
+                                <div class="pm-actions">
+                                    <button class="btn-primary" id="install-pak">
+                                        📥 Instalar .PAK
+                                    </button>
+                                    <button class="btn-secondary" id="refresh-packages">
+                                        ↻ Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="pm-body">
+                                <div class="pm-sidebar">
+                                    <h3>Categorías</h3>
+                                    <div class="pm-list">
+                                        <div class="pm-item active" data-category="all">
+                                            <span>📦</span> Todos
+                                        </div>
+                                        <div class="pm-item" data-category="system">
+                                            <span>⚙️</span> Sistema
+                                        </div>
+                                        <div class="pm-item" data-category="apps">
+                                            <span>💻</span> Aplicaciones
+                                        </div>
+                                        <div class="pm-item" data-category="custom">
+                                            <span>🎨</span> Personalizadas
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pm-content">
+                                    <h3>Aplicaciones Instaladas</h3>
+                                    <div id="packages-list" style="margin-top: 10px;">
+                                        <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                                            Cargando aplicaciones...
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                
+                function loadPackages() {
+                    const packagesList = content.querySelector('#packages-list');
+                    const apps = XP7.apps;
+                    
+                    if (Object.keys(apps).length === 0) {
+                        packagesList.innerHTML = `
+                            <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                                No hay aplicaciones instaladas
+                            </p>
+                        `;
+                        return;
+                    }
+                    
+                    let html = '';
+                    Object.entries(apps).forEach(([id, app]) => {
+                        html += `
+                            <div class="pm-item" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                    <div style="font-size: 24px;">${app.icon}</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500;">${app.name}</div>
+                                        <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
+                                            ${app.description || 'Sin descripción'}
+                                            <div style="font-size: 10px; margin-top: 2px; color: #4CAF50;">
+                                                ID: ${id}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn-secondary launch-app-btn" data-app="${id}"
+                                                style="padding: 3px 8px; font-size: 12px;">
+                                            Abrir
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    packagesList.innerHTML = html;
+                    
+                    // Añadir event listeners a los botones de abrir
+                    packagesList.querySelectorAll('.launch-app-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const appId = btn.dataset.app;
+                            XP7Apps.launch(appId);
+                        });
+                    });
+                }
+                
+                content.querySelector('#install-pak').addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.pak,.json';
+                    
+                    input.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            try {
+                                const pakData = JSON.parse(event.target.result);
+                                
+                                // Validar que el paquete tenga los campos mínimos
+                                if (!pakData.name || !pakData.icon) {
+                                    throw new Error('Paquete inválido: debe contener al menos nombre e icono');
+                                }
+                                
+                                // Crear un ID único para la aplicación
+                                const appId = pakData.id || pakData.name.toLowerCase()
+                                    .replace(/[^a-z0-9]/g, '-')
+                                    .replace(/-+/g, '-');
+                                
+                                // Agregar la aplicación al sistema
+                                XP7.apps[appId] = {
+                                    name: pakData.name,
+                                    icon: pakData.icon,
+                                    description: pakData.description || 'Aplicación instalada desde paquete .pak',
+                                    category: pakData.category || 'Aplicaciones',
+                                    width: pakData.width || 600,
+                                    height: pakData.height || 400,
+                                    content: pakData.content || '<p>Aplicación instalada correctamente</p>'
+                                    // No asignamos launch - será manejado por openCustomApp
+                                };
+                                
+                                // Actualizar el escritorio
+                                XP7.updateDesktopIcons();
+                                
+                                // Recargar la lista de paquetes
+                                loadPackages();
+                                
+                                // Mostrar notificación de éxito
+                                XP7.showNotification('Paquete Instalado', 
+                                    `"${pakData.name}" instalado correctamente`, 
+                                    'success');
+                                    
+                                // Guardar el paquete en el sistema de archivos
+                                const pakFileName = appId + '.pak';
+                                await XP7.fileSystem.writeFile(`/Apps/${pakFileName}`, event.target.result);
+                                
+                            } catch (error) {
+                                console.error('Error instalando paquete:', error);
+                                XP7.showNotification('Error', 'Error instalando paquete: ' + error.message, 'error');
+                            }
+                        };
+                        
+                        reader.readAsText(file);
+                    });
+                    
+                    input.click();
+                });
+                
+                content.querySelector('#refresh-packages').addEventListener('click', loadPackages);
+                
+                content.querySelectorAll('.pm-item[data-category]').forEach(item => {
+                    item.addEventListener('click', () => {
+                        content.querySelectorAll('.pm-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        loadPackages();
+                    });
+                });
+                
+                loadPackages();
+            },
+            
+            openStorageManager() {
+                const window = XP7Window.create({
+                    title: 'Storage Manager',
+                    icon: '💾',
+                    width: 700,
+                    height: 500,
+                    content: `
+                        <div style="padding: 20px;">
+                            <h2>💾 Storage Manager</h2>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">
+                                Gestión de almacenamiento local del sistema
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                                <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                    <h3 style="color: #4CAF50; margin-bottom: 10px;">📊 Almacenamiento</h3>
+                                    <div id="storage-info">
+                                        <p>Cargando información...</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                    <h3 style="color: #2196F3; margin-bottom: 10px;">📁 Sistema de Archivos</h3>
+                                    <div id="fs-info">
+                                        <p>Modo: <strong>${XP7.fileSystem.mode}</strong></p>
+                                        <p>Directorios: <span id="dir-count">0</span></p>
+                                        <p>Archivos: <span id="file-count">0</span></p>
+                                        <p>Tamaño total: <span id="total-size">0 KB</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin: 20px 0;">
+                                <h3 style="color: #ff9800; margin-bottom: 10px;">🛠️ Herramientas</h3>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                    <button class="btn-primary" id="btn-refresh">
+                                        🔄 Actualizar
+                                    </button>
+                                    <button class="btn-secondary" id="btn-export">
+                                        📤 Exportar Todo
+                                    </button>
+                                    <button class="btn-secondary" id="btn-import">
+                                        📥 Importar
+                                    </button>
+                                    <button class="btn-secondary" id="btn-cleanup">
+                                        🧹 Limpiar Cache
+                                    </button>
+                                    <button class="btn-secondary" id="btn-structure">
+                                        📋 Ver Estructura
+                                    </button>
+                                    <button class="btn-danger" id="btn-reset">
+                                        🗑️ Restablecer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                
+                function updateStorageInfo() {
+                    try {
+                        const info = XP7.fileSystem.getStorageInfo();
+                        const structure = XP7.fileSystem.structure;
+                        
+                        const storageHTML = `
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Uso:</span>
+                                    <span><strong>${info.usedMB} MB</strong> / ${info.maxMB} MB</span>
+                                </div>
+                                <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+                                    <div style="width: ${info.percentage}%; height: 100%; background: linear-gradient(90deg, #4CAF50, #45a049); border-radius: 5px;"></div>
+                                </div>
+                                <div style="margin-top: 5px; font-size: 11px; color: rgba(255,255,255,0.6);">
+                                    ${info.percentage}% utilizado
+                                </div>
+                            </div>
+                            <p style="margin-top: 10px;">Archivos del sistema: <strong>${info.fileCount}</strong></p>
+                        `;
+                        
+                        content.querySelector('#storage-info').innerHTML = storageHTML;
+                        
+                        const dirCount = Object.keys(structure).length;
+                        let totalFiles = 0;
+                        Object.values(structure).forEach(files => {
+                            totalFiles += files.length;
+                        });
+                        
+                        content.querySelector('#dir-count').textContent = dirCount;
+                        content.querySelector('#file-count').textContent = totalFiles;
+                        content.querySelector('#total-size').textContent = info.usedMB + ' MB';
+                        
+                    } catch (error) {
+                        console.error('Error updating storage info:', error);
+                    }
+                }
+                
+                content.querySelector('#btn-refresh').addEventListener('click', () => {
+                    updateStorageInfo();
+                    XP7.showNotification('Storage Manager', 'Información actualizada', 'info');
+                });
+                
+                content.querySelector('#btn-export').addEventListener('click', () => {
+                    try {
+                        const exportData = XP7.fileSystem.exportFileSystem();
+                        const blob = new Blob([exportData], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'xp7-backup-' + new Date().toISOString().split('T')[0] + '.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        
+                        URL.revokeObjectURL(url);
+                        
+                        XP7.showNotification('Exportación', 'Sistema de archivos exportado', 'success');
+                    } catch (error) {
+                        XP7.showNotification('Error', 'No se pudo exportar', 'error');
+                    }
+                });
+                
+                content.querySelector('#btn-import').addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    
+                    input.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const success = XP7.fileSystem.importFileSystem(event.target.result);
+                                
+                                if (success) {
+                                    updateStorageInfo();
+                                    XP7.showNotification('Importación', 'Sistema importado', 'success');
+                                } else {
+                                    XP7.showNotification('Error', 'Formato inválido', 'error');
+                                }
+                            } catch (error) {
+                                XP7.showNotification('Error', 'Error importando', 'error');
+                            }
+                        };
+                        
+                        reader.readAsText(file);
+                    });
+                    
+                    input.click();
+                });
+                
+                updateStorageInfo();
+            },
+            
+            openFileSelector() {
+                const fsAvailable = 'showDirectoryPicker' in window;
+                const isFileSystemMode = XP7.fileSystem.mode === 'fileSystem';
+                
+                const fsWindow = XP7Window.create({
+                    title: 'Selector de Sistema de Archivos',
+                    icon: '📂',
+                    width: 600,
+                    height: 450,
+                    content: `
+                        <div class="fs-selector">
+                            <h2>📂 Selector de Sistema de Archivos</h2>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">
+                                Elige cómo quieres almacenar tus archivos
+                            </p>
+                            
+                            <div class="fs-option ${XP7.fileSystem.mode === 'localStorage' ? 'selected' : ''}" id="option-local">
+                                <div class="fs-option-icon">💾</div>
+                                <div class="fs-option-info">
+                                    <div class="fs-option-title">Local Storage (Actual)</div>
+                                    <div class="fs-option-desc">Archivos guardados en el navegador. Se pierden al limpiar cache.</div>
+                                </div>
+                                <span class="fs-status ${XP7.fileSystem.mode === 'localStorage' ? 'available' : ''}">
+                                    ${XP7.fileSystem.mode === 'localStorage' ? '✅ Activo' : ''}
+                                </span>
+                            </div>
+                            
+                            <div class="fs-option ${isFileSystemMode ? 'selected' : ''}" id="option-fsapi">
+                                <div class="fs-option-icon">📂</div>
+                                <div class="fs-option-info">
+                                    <div class="fs-option-title">File System API</div>
+                                    <div class="fs-option-desc">Accede a archivos reales en tu computadora. Solo Chrome/Edge.</div>
+                                </div>
+                                <span class="fs-status ${fsAvailable ? 'available' : 'unavailable'}">
+                                    ${fsAvailable ? (isFileSystemMode ? '✅ Activo' : '✅ Disponible') : '❌ No disponible'}
+                                </span>
+                            </div>
+                            
+                            <div id="fs-status-info" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <h3 style="color: #4CAF50; margin-bottom: 10px;">Estado Actual</h3>
+                                <p id="current-mode">Modo: <strong>${XP7.fileSystem.mode}</strong></p>
+                                ${isFileSystemMode && XP7.fileSystem.directoryHandle ? 
+                                  '<p>Directorio: <strong>' + XP7.fileSystem.directoryHandle.name + '</strong></p>' : 
+                                  ''}
+                                <p id="fs-capabilities">${fsAvailable ? 
+                                  '<span style="color: #4CAF50;">✅ File System API disponible</span>' : 
+                                  '<span style="color: #f44336;">❌ File System API no disponible en este navegador</span>'}</p>
+                            </div>
+                            
+                            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                                <button class="btn-primary" id="btn-activate-fs" 
+                                        ${!fsAvailable || isFileSystemMode ? 'disabled' : ''}>
+                                    🚀 Activar File System API
+                                </button>
+                                <button class="btn-secondary" id="btn-switch-local"
+                                        ${XP7.fileSystem.mode === 'localStorage' ? 'disabled' : ''}>
+                                    🔄 Cambiar a Local Storage
+                                </button>
+                            </div>
+                            
+                            ${XP7.fileSystem.mode === 'localStorage' ? `
+                            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <h3 style="color: #2196F3; margin-bottom: 10px;">⚠️ Advertencia</h3>
+                                <p>En Local Storage, tus archivos se guardan en el navegador y pueden perderse si limpias el cache. 
+                                Te recomendamos exportar regularmente tus datos.</p>
+                                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                                    <button class="btn-secondary" id="btn-export-data">📤 Exportar Datos</button>
+                                    <button class="btn-secondary" id="btn-import-data">📥 Importar Datos</button>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `
+                });
+                
+                const content = fsWindow.querySelector('.window-content');
+                
+                content.querySelector('#btn-activate-fs').addEventListener('click', async () => {
+                    try {
+                        XP7.showNotification('File System', 'Selecciona un directorio para usar...', 'info');
+                        const handle = await XP7.fileSystem.enableFileSystemAPI();
+                        const migrate = confirm('¿Deseas migrar tus archivos existentes al nuevo directorio?');
+                        if (migrate) {
+                            XP7.showNotification('Migración', 'Migrando archivos...', 'info');
+                        }
+                        XP7.showNotification('File System', 
+                            'File System API activada en: ' + handle.name, 
+                            'success');
+                        fsWindow.querySelector('.window-control.close').click();
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            XP7.showNotification('Error', 'No se pudo activar File System API: ' + error.message, 'error');
+                        }
+                    }
+                });
+                
+                content.querySelector('#btn-switch-local').addEventListener('click', () => {
+                    if (confirm('¿Cambiar a Local Storage?\n\nNota: Los archivos físicos permanecerán en tu directorio seleccionado, pero el sistema usará Local Storage.')) {
+                        XP7.fileSystem.mode = 'localStorage';
+                        XP7.fileSystem.directoryHandle = null;
+                        localStorage.setItem('xp7_fs_mode', 'localStorage');
+                        XP7.showNotification('File System', 'Cambiado a Local Storage', 'success');
+                        fsWindow.querySelector('.window-control.close').click();
+                    }
+                });
+                
+                if (content.querySelector('#btn-export-data')) {
+                    content.querySelector('#btn-export-data').addEventListener('click', () => {
+                        const exportData = XP7.fileSystem.exportFileSystem();
+                        const blob = new Blob([exportData], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'xp7-backup-' + new Date().toISOString().split('T')[0] + '.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        
+                        URL.revokeObjectURL(url);
+                        XP7.showNotification('Exportación', 'Datos exportados correctamente', 'success');
+                    });
+                }
+                
+                if (content.querySelector('#btn-import-data')) {
+                    content.querySelector('#btn-import-data').addEventListener('click', () => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.json';
+                        
+                        input.addEventListener('change', (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                try {
+                                    const success = XP7.fileSystem.importFileSystem(event.target.result);
+                                    if (success) {
+                                        XP7.showNotification('Importación', 'Datos importados correctamente', 'success');
+                                    } else {
+                                        XP7.showNotification('Error', 'Formato de archivo inválido', 'error');
+                                    }
+                                } catch (error) {
+                                    XP7.showNotification('Error', 'Error importando: ' + error.message, 'error');
+                                }
+                            };
+                            
+                            reader.readAsText(file);
+                        });
+                        
+                        input.click();
+                    });
+                }
+            },
+            
+            openSettings() {
+                const window = XP7Window.create({
+                    title: 'Configuración',
+                    icon: '⚙️',
+                    width: 600,
+                    height: 400,
+                    content: `
+                        <div style="padding: 20px;">
+                            <h2>⚙️ Configuración del Sistema</h2>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">
+                                Ajustes y configuración de XP7 OS
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                                <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                    <h3 style="color: #4CAF50; margin-bottom: 10px;">Sistema</h3>
+                                    <p>Versión: <strong>${XP7.version}</strong></p>
+                                    <p>Navegador: <strong>${navigator.userAgent.split(' ')[0] || 'Unknown'}</strong></p>
+                                    <p>Apps instaladas: <strong>${Object.keys(XP7.apps).length}</strong></p>
+                                </div>
+                                
+                                <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                    <h3 style="color: #2196F3; margin-bottom: 10px;">Almacenamiento</h3>
+                                    <div id="settings-storage">
+                                        <p>Cargando...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 20px;">
+                                <h3 style="color: #ff9800; margin-bottom: 10px;">Opciones</h3>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <button class="btn-secondary" id="btn-reset-desktop">
+                                        🔄 Restablecer Escritorio
+                                    </button>
+                                    <button class="btn-secondary" id="btn-clear-cache">
+                                        🧹 Limpiar Cache
+                                    </button>
+                                    <button class="btn-danger" id="btn-factory-reset">
+                                        🏭 Restablecimiento de Fábrica
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                
+                function updateStorageInfo() {
+                    const info = XP7.fileSystem.getStorageInfo();
+                    content.querySelector('#settings-storage').innerHTML = `
+                        <p>Modo: <strong>${XP7.fileSystem.mode}</strong></p>
+                        <p>Usado: <strong>${info.usedMB} MB</strong> / ${info.maxMB} MB</p>
+                        <p>Archivos: <strong>${info.fileCount}</strong></p>
+                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 5px 0;">
+                            <div style="width: ${info.percentage}%; height: 100%; background: #2196F3; border-radius: 3px;"></div>
+                        </div>
+                    `;
+                }
+                
+                updateStorageInfo();
+                
+                content.querySelector('#btn-reset-desktop').addEventListener('click', () => {
+                    if (confirm('¿Restablecer iconos del escritorio?')) {
+                        XP7.updateDesktopIcons();
+                        XP7.showNotification('Configuración', 'Escritorio restablecido', 'info');
+                    }
+                });
+                
+                content.querySelector('#btn-clear-cache').addEventListener('click', () => {
+                    if (confirm('¿Limpiar cache del sistema?')) {
+                        let count = 0;
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (!key.startsWith('xp7_')) {
+                                localStorage.removeItem(key);
+                                count++;
+                            }
+                        }
+                        updateStorageInfo();
+                        XP7.showNotification('Configuración', 'Cache limpiado (' + count + ' items)', 'info');
+                    }
+                });
+                
+                content.querySelector('#btn-factory-reset').addEventListener('click', () => {
+                    if (confirm('⚠️ ¿RESTABLECIMIENTO DE FÁBRICA?\n\nSe eliminarán TODOS los datos.\nEsta acción NO se puede deshacer.')) {
+                        localStorage.clear();
+                        XP7.showNotification('Configuración', 'Sistema restablecido. Recargando...', 'warning');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
+                });
+            },
+            
+            openTerminal() {
+                const window = XP7Window.create({
+                    title: 'Terminal',
+                    icon: '💻',
+                    width: 700,
+                    height: 500,
+                    content: `
+                        <div style="height: 100%; background: #000; color: #0f0; font-family: monospace; font-size: 14px; padding: 10px; overflow: auto; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 10px;">
+                                <div>XP7 Terminal v1.0.0</div>
+                                <div>Type 'help' for available commands</div>
+                                <div>&nbsp;</div>
+                            </div>
+                            <div id="terminal-output" style="flex: 1; overflow-y: auto; margin-bottom: 10px;"></div>
+                            <div style="display: flex; border-top: 1px solid #0f0; padding-top: 5px;">
+                                <span style="color: #0f0; margin-right: 5px;">user@xp7:~$ </span>
+                                <input type="text" id="terminal-input" style="flex: 1; background: transparent; border: none; color: #0f0; font-family: monospace; outline: none;" autofocus>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                const input = content.querySelector('#terminal-input');
+                const output = content.querySelector('#terminal-output');
+                
+                const commands = {
+                    help: () => {
+                        return `Available commands:
+- help: Show this help message
+- clear: Clear the terminal
+- echo [text]: Echo text
+- ver: Show system version
+- ls: List files
+- date: Show current date and time
+- storage: Show storage information
+- apps: List installed apps
+- updates: Show installed updates
+- mode: Show current filesystem mode`;
+                    },
+                    clear: () => {
+                        output.innerHTML = '';
+                        return '';
+                    },
+                    echo: (args) => {
+                        return args.join(' ');
+                    },
+                    ver: () => {
+                        return 'XP7 OS v' + XP7.version;
+                    },
+                    ls: async () => {
+                        try {
+                            const entries = await XP7.fileSystem.listDirectory('/');
+                            if (entries.length === 0) return 'No files found';
+                            return entries.map(entry => {
+                                return entry.icon + ' ' + entry.name;
+                            }).join('\n');
+                        } catch (error) {
+                            return 'Error: ' + error.message;
+                        }
+                    },
+                    date: () => {
+                        return new Date().toString();
+                    },
+                    storage: () => {
+                        const info = XP7.fileSystem.getStorageInfo();
+                        return 'Storage: ' + info.usedMB + ' MB / ' + info.maxMB + ' MB (' + info.percentage + '%)\nFiles: ' + info.fileCount + '\nMode: ' + XP7.fileSystem.mode;
+                    },
+                    apps: () => {
+                        const apps = XP7.apps;
+                        if (Object.keys(apps).length === 0) return 'No apps installed';
+                        return Object.values(apps).map(app => {
+                            return app.icon + ' ' + app.name + ' - ' + app.description;
+                        }).join('\n');
+                    },
+                    updates: () => {
+                        const updates = XP7.fileSystem.getInstalledUpdates();
+                        if (updates.length === 0) return 'No updates installed';
+                        return updates.map(update => {
+                            return '🔄 ' + (update.name || 'Unnamed update') + ' v' + (update.version || '1.0.0');
+                        }).join('\n');
+                    },
+                    mode: () => {
+                        return 'Filesystem mode: ' + XP7.fileSystem.mode;
+                    }
+                };
+                
+                const processCommand = async (command) => {
+                    const parts = command.trim().split(' ');
+                    const cmd = parts[0].toLowerCase();
+                    const args = parts.slice(1);
+                    
+                    if (commands[cmd]) {
+                        if (cmd === 'ls' || cmd === 'storage' || cmd === 'apps' || cmd === 'updates') {
+                            return await commands[cmd]();
+                        }
+                        return commands[cmd](args);
+                    } else if (cmd) {
+                        return 'Command not found: ' + cmd + '. Type \'help\' for available commands.';
+                    }
+                    
+                    return '';
+                };
+                
+                const addOutput = (text) => {
+                    const line = document.createElement('div');
+                    line.textContent = text;
+                    output.appendChild(line);
+                    output.scrollTop = output.scrollHeight;
+                };
+                
+                input.addEventListener('keypress', async (e) => {
+                    if (e.key === 'Enter') {
+                        const command = input.value.trim();
+                        input.value = '';
+                        
+                        addOutput('$ ' + command);
+                        
+                        const result = await processCommand(command);
+                        if (result) {
+                            addOutput(result);
+                        }
+                        
+                        addOutput('');
+                    }
+                });
+            },
+            
+            openACTManager() {
+                const window = XP7Window.create({
+                    title: 'Gestor de Archivos .ACT',
+                    icon: '🔄',
+                    width: 700,
+                    height: 500,
+                    content: `
+                        <div style="padding: 20px;">
+                            <h2>🔄 Gestor de Archivos de Actualización (.ACT)</h2>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">
+                                Instala y gestiona actualizaciones del sistema usando File System API
+                            </p>
+                            
+                            <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <h3 style="color: #4CAF50; margin-bottom: 10px;">Instalar .ACT</h3>
+                                <p style="margin-bottom: 15px;">Instala archivos de actualización .act desde tu sistema local o usando File System API.</p>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-primary" id="install-act-fs">
+                                        📥 Instalar .ACT (File System API)
+                                    </button>
+                                    <button class="btn-secondary" id="install-act-local">
+                                        📂 Instalar .ACT (Local)
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <h3 style="color: #2196F3; margin-bottom: 10px;">Actualizaciones Instaladas</h3>
+                                <div id="act-list">
+                                    <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                                        Cargando actualizaciones...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                const content = window.querySelector('.window-content');
+                
+                function loadACTList() {
+                    const updates = XP7.fileSystem.getInstalledUpdates();
+                    const actList = content.querySelector('#act-list');
+                    
+                    if (updates.length === 0) {
+                        actList.innerHTML = `
+                            <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                                No hay actualizaciones instaladas
+                            </p>
+                        `;
+                        return;
+                    }
+                    
+                    let html = '';
+                    updates.forEach(update => {
+                        html += `
+                            <div class="pm-item" data-key="${update.key}" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                    <div style="font-size: 24px;">🔄</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500;">${update.name || 'Actualización sin nombre'}</div>
+                                        <div style="font-size: 12px; color: rgba(255,255,255,0.6);">
+                                            Versión: ${update.version || '1.0.0'} | 
+                                            Instalado: ${new Date(update.installed).toLocaleDateString()}
+                                            ${update.description ? '<br>' + update.description : ''}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn-danger btn-delete-act" data-key="${update.key}" 
+                                                style="padding: 3px 8px; font-size: 12px;">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    actList.innerHTML = html;
+                    
+                    actList.querySelectorAll('.btn-delete-act').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const key = btn.dataset.key;
+                            if (confirm('¿Eliminar esta actualización?')) {
+                                if (XP7.fileSystem.deleteUpdate(key)) {
+                                    loadACTList();
+                                    XP7.showNotification('ACT Manager', 'Actualización eliminada', 'success');
+                                }
+                            }
+                        });
+                    });
+                }
+                
+                content.querySelector('#install-act-fs').addEventListener('click', async () => {
+                    XP7.showNotification('ACT Manager', 'Intentando usar File System API...', 'info');
+                    
+                    const result = await XP7.fileSystem.installACTFileUsingFS();
+                    
+                    if (result.success) {
+                        XP7.showNotification('ACT Manager', result.message, 'success');
+                        loadACTList();
+                    } else {
+                        XP7.showNotification('Error', result.message, 'error');
+                    }
+                });
+                
+                content.querySelector('#install-act-local').addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.act,.json';
+                    
+                    input.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            const result = await XP7.fileSystem.processACTFile(event.target.result);
+                            
+                            if (result.success) {
+                                XP7.showNotification('ACT Manager', result.message, 'success');
+                                loadACTList();
+                            } else {
+                                XP7.showNotification('Error', result.message, 'error');
+                            }
+                        };
+                        
+                        reader.readAsText(file);
+                    });
+                    
+                    input.click();
+                });
+                
+                loadACTList();
+            }
+        };
+
+        // Inicializar el sistema cuando se cargue la página
+        document.addEventListener('DOMContentLoaded', () => {
+            XP7.init();
+        });
+    </script>
+</body>
+</html>
