@@ -3040,6 +3040,111 @@
         // Exponer XP7 globalmente
         window.XP7 = XP7;
         console.log('🌍 XP7 OS listo para usar');
+        // ============================================
+// PARCHE PARA XP7 3.0.0 - ARREGLA ACTs
+// ============================================
+
+// 1. Arreglar addApp
+if (XP7 && XP7.addApp) {
+  const originalAddApp = XP7.addApp;
+  XP7.addApp = function(id, appData) {
+    console.log('🔄 Parche addApp ejecutado para:', id);
+    
+    // Si appData es string, convertirlo a objeto
+    if (typeof appData === 'string') {
+      try {
+        appData = JSON.parse(appData);
+      } catch(e) {
+        appData = {
+          name: id,
+          icon: '📱',
+          description: 'App',
+          category: 'Apps',
+          launch: function() {
+            XP7.showNotification('App', id + ' loaded', 'info');
+          }
+        };
+      }
+    }
+    
+    // Asegurar que launch sea función
+    if (typeof appData.launch === 'string') {
+      try {
+        appData.launch = new Function('return ' + appData.launch)();
+      } catch(e) {
+        appData.launch = function() {
+          const winId = 'window_' + XP7.nextWindowId++;
+          XP7.runningApps.set(id, winId);
+          XP7.createWindow({
+            id: winId,
+            title: appData.name || id,
+            icon: appData.icon || '📱',
+            width: 400,
+            height: 300,
+            content: '<div style="padding:20px;text-align:center;"><h2>' + (appData.name || id) + '</h2><p>' + (appData.description || '') + '</p></div>'
+          });
+        };
+      }
+    }
+    
+    // Llamar al original
+    return originalAddApp.call(this, id, appData);
+  };
+  console.log('✅ Parche addApp instalado');
+}
+
+// 2. Cargar ACTs al iniciar
+setTimeout(function() {
+  if (XP7 && XP7.fileSystem) {
+    console.log('🔄 Cargando ACTs al inicio...');
+    const updates = XP7.fileSystem.getInstalledUpdates();
+    console.log('📦 ACTs encontrados:', updates.length);
+    
+    updates.forEach(update => {
+      if (update.actions) {
+        update.actions.forEach(action => {
+          if (action.type === 'addApp' && action.appId) {
+            console.log('➕ Procesando app de ACT:', action.appId);
+            if (XP7.addApp) {
+              XP7.addApp(action.appId, action.appData);
+            }
+          }
+        });
+      }
+    });
+  }
+}, 3000);
+
+// 3. Agregar app de prueba manualmente
+setTimeout(function() {
+  if (XP7 && !XP7.apps.has('test-app-manual')) {
+    XP7.apps.set('test-app-manual', {
+      name: 'Test Manual',
+      icon: '✅',
+      description: 'App agregada manualmente',
+      category: 'Test',
+      launch: function() {
+        const winId = 'window_' + XP7.nextWindowId++;
+        XP7.runningApps.set('test-app-manual', winId);
+        XP7.createWindow({
+          id: winId,
+          title: 'Test Manual',
+          icon: '✅',
+          width: 400,
+          height: 300,
+          content: '<div style="padding:30px;text-align:center;"><h2>¡Funciona!</h2><p>Esta app fue agregada manualmente</p></div>'
+        });
+      }
+    });
+    
+    if (XP7.updateDesktop) {
+      XP7.updateDesktop();
+      console.log('✅ Test app manual agregada');
+    }
+  }
+}, 2000);
+
+console.log('🎯 PARCHE XP7 3.0.0 INSTALADO');
     </script>
 </body>
 </html>
