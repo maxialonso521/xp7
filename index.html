@@ -3168,6 +3168,28 @@ IE.fav=function(){
 IE.back=function(){history.back();};
 IE.forward=function(){history.forward();};
 IE.open=function(u){window.open(u,"_blank");};
+        <script>
+IE.search=function(q){
+ q=q.trim();
+ let f=document.getElementById("ie6-frame");
+ if(!f){
+  f=document.createElement("iframe");
+  f.id="ie6-frame";
+  f.style.width="100%";
+  f.style.height="100%";
+  f.style.border="0";
+  document.getElementById("desktop").appendChild(f);
+ }
+
+ if(q.startsWith("http")){
+  f.src=q;
+ }else if(q.length>6 && !q.includes(" ")){
+  f.src="https://www.youtube-nocookie.com/embed/"+q+"?autoplay=1&controls=1&rel=0";
+ }else{
+  f.src="https://es.wikipedia.org/wiki/"+encodeURIComponent(q.replace(/ /g,"_"));
+ }
+};
+
     </script>
 </body>
 </html>
