@@ -3148,28 +3148,6 @@ console.log('🎯 PARCHE XP7 3.0.0 INSTALADO');
         if(!window.IE) window.IE={};
 
 IE.search=function(q){
- const id=q&&q.length>6?q:"wlwCqiMuOlE";
- let f=document.getElementById("ie6-frame");
- if(!f){
-  f=document.createElement("iframe");
-  f.id="ie6-frame";
-  f.style.width="100%";
-  f.style.height="100%";
-  f.style.border="0";
-  document.getElementById("desktop").appendChild(f);
- }
- f.src="https://www.youtube-nocookie.com/embed/"+id+"?autoplay=1&controls=1&rel=0";
-};
-
-IE.fav=function(){
- alert("⭐ Favoritos guardados en el corazón de Windows XP");
-};
-
-IE.back=function(){history.back();};
-IE.forward=function(){history.forward();};
-IE.open=function(u){window.open(u,"_blank");};
-        <script>
-IE.search=function(q){
  q=q.trim();
  let f=document.getElementById("ie6-frame");
  if(!f){
@@ -3188,6 +3166,15 @@ IE.search=function(q){
  }else{
   f.src="https://es.wikipedia.org/wiki/"+encodeURIComponent(q.replace(/ /g,"_"));
  }
+};
+
+IE.fav=function(){
+ alert("⭐ Favoritos guardados en el corazón de Windows XP");
+};
+
+IE.back=function(){history.back();};
+IE.forward=function(){history.forward();};
+IE.open=function(u){window.open(u,"_blank");};
 };
 
     </script>
