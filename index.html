@@ -4691,6 +4691,67 @@ body {
             xp7.exposeToGlobal();
             await xp7.init();
         });
+        (function(){
+  // Espera a que el DOM esté listo
+  function onReady(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  // Inicializa un contenedor de app
+  function initAppContainer(container) {
+    if (!container) return;
+    container.style.position = 'relative';
+    container.style.overflow = 'hidden';
+    container.style.width = container.getAttribute('data-width') || '600px';
+    container.style.height = container.getAttribute('data-height') || '400px';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.alignItems = 'center';
+    container.style.justifyContent = 'flex-start';
+  }
+
+  // Detecta todas las apps en la página
+  function initApps() {
+    const apps = document.querySelectorAll('.pak-app');
+    apps.forEach(app => {
+      initAppContainer(app);
+      // Si el app tiene script inline, lo evalúa
+      const scripts = app.querySelectorAll('script');
+      scripts.forEach(s => {
+        try {
+          new Function(s.innerHTML)();
+        } catch(e) {
+          console.error('Error ejecutando script de la app:', e);
+        }
+      });
+    });
+  }
+
+  // Observa si se agregan apps dinámicamente
+  function observeDynamicApps() {
+    const observer = new MutationObserver(muts => {
+      muts.forEach(m => {
+        m.addedNodes.forEach(n => {
+          if (n.classList && n.classList.contains('pak-app')) {
+            initAppContainer(n);
+            const scripts = n.querySelectorAll('script');
+            scripts.forEach(s => { try { new Function(s.innerHTML)(); } catch(e){ console.error(e); } });
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Ejecutar todo
+  onReady(() => {
+    initApps();
+    observeDynamicApps();
+    console.log('✅ Universal App Render Helper activo');
+  });
+
+})();
     </script>
 </body>
 </html>
